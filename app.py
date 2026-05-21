@@ -62,7 +62,6 @@ H = """
         <div id="l"></div>
     </div>
     <script>
-        // Matrix
         const c=document.getElementById('m'), x=c.getContext('2d');
         c.width=window.innerWidth; c.height=window.innerHeight;
         const d=Array(Math.floor(c.width/20)).fill(1);
@@ -77,18 +76,19 @@ H = """
         }
         setInterval(draw, 50);
 
-        // Умная прогрессия (рост ~0.15% в сутки)
         function updateProgress() {
             const startValue = 18.4100;
-            const startTime = 1716303000000; // Точка отсчета (сегодня)
-            const now = new Date().getTime();
+            // Установили время на "сейчас", чтобы не было прыжков
+            const startTime = Date.now(); 
             
-            // Коэффициент: 0.00000000174 за миллисекунду дает ~0.15% в сутки
-            const growth = (now - startTime) * 0.00000000174;
-            const total = startValue + (growth > 0 ? growth : 0);
-            
-            document.getElementById('p').innerText = total.toFixed(4);
-            setTimeout(() => { document.getElementById('f').style.width = (total > 100 ? 100 : total) + '%'; }, 500);
+            setInterval(() => {
+                const now = Date.now();
+                // Медленный рост в реальном времени
+                const growth = (now - startTime) * 0.000000001; 
+                const total = startValue + growth;
+                document.getElementById('p').innerText = total.toFixed(4);
+                document.getElementById('f').style.width = (total > 100 ? 100 : total) + '%';
+            }, 1000);
         }
         updateProgress();
 
