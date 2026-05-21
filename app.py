@@ -77,7 +77,8 @@ H = """
         setInterval(draw, 50);
 
         function updateProgress() {
-            const startDate = new Date('2024-05-21T00:00:00').getTime(); 
+            // Установили дату на сегодня (21 мая 2026), чтобы отсчет начался с 18.41%
+            const startDate = new Date('2026-05-21T00:00:00').getTime(); 
             const startPercent = 18.4100;
             const growthPerDay = 0.38; 
 
@@ -87,10 +88,17 @@ H = """
             function refreshUI() {
                 const now = Date.now();
                 const daysPassed = (now - startDate) / (1000 * 60 * 60 * 24);
+                
+                // Считаем прогресс: старт + рост по дням + микро-колебания для живости
                 let total = startPercent + (daysPassed * growthPerDay);
                 let jitter = Math.sin(now / 5000) * 0.001; 
                 let currentTotal = total + jitter;
-                if (currentTotal > 98.75) currentTotal = 98.75;
+
+                // Лимит, чтобы не ушло за 100%
+                if (currentTotal > 99.00) currentTotal = 99.00;
+                // Если вдруг время на сервере/клиенте чуть сбито, не даем упасть ниже старта
+                if (currentTotal < startPercent) currentTotal = startPercent;
+
                 display.innerText = currentTotal.toFixed(4);
                 bar.style.width = currentTotal + '%';
             }
@@ -105,6 +113,8 @@ H = """
             e.innerHTML=`[${new Date().toLocaleTimeString()}] Incoming confirmed: +${amount} BTC...`;
             l.prepend(e); 
             if(l.childNodes.length > 5) l.removeChild(l.lastChild);
+            
+            // Новое сообщение каждые 25-45 секунд
             const nextTime = Math.floor(Math.random() * (45000 - 25000 + 1) + 25000);
             setTimeout(add, nextTime);
         }
