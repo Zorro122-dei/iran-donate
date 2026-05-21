@@ -26,7 +26,7 @@ H = """
         .head { padding:30px; z-index:1; position:relative; }
         .manif { border-left:3px solid #f05; background:rgba(30,30,30,0.9); padding:15px; max-width:600px; margin:10px auto; text-align:left; color:#ccc; border:1px solid #444; }
         .goal-bg { width:300px; height:12px; border:1px solid #0ff; margin:15px auto; position:relative; background:#000; overflow:hidden; }
-        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; width: 0%; transition: width 2s linear; }
+        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; width: 0%; transition: width 0.5s linear; }
         .wrap { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
         .card { border:1px solid #0ff; background:rgba(20,20,20,0.95); padding:20px; width:260px; }
         .qr { background:#fff; padding:5px; margin:10px 0; border:2px solid #000; }
@@ -76,32 +76,31 @@ H = """
         }
         setInterval(draw, 50);
 
-        function updateProgress() {
-            // Дата начала: 21 мая 2026, 19:40
-            const startTimestamp = 1747845600000; 
-            const startPercent = 18.4100;
-            const growthPerDay = 0.35; 
+        // --- ТОЛЬКО ПРЯМОЙ РОСТ ---
+        function runCounter() {
+            const startP = 18.4100;
+            const dayRate = 0.35;
+            // Уникальная точка отсчета (startTimestamp), чтобы сбросить старые глюки
+            const startT = 1747846000000; 
 
-            function refresh() {
+            function update() {
                 const now = Date.now();
-                const diffMs = now - startTimestamp;
-                const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                const passed = (now - startT) / (1000 * 60 * 60 * 24);
                 
-                // Строгий рост: база + (дни * скорость)
-                // Никаких Math.sin или случайных чисел здесь больше нет
-                let current = startPercent + (diffDays > 0 ? diffDays * growthPerDay : 0);
+                // Рассчитываем значение
+                let res = startP + (passed > 0 ? passed * dayRate : 0);
                 
-                if (current > 99.5) current = 99.5;
+                if (res > 99.8) res = 99.8;
 
-                document.getElementById('p').innerText = current.toFixed(4);
-                document.getElementById('f').style.width = current + '%';
+                // Выводим текст и шкалу
+                document.getElementById('p').innerText = res.toFixed(4);
+                document.getElementById('f').style.width = res + '%';
             }
             
-            // Обновляем раз в секунду, чтобы рост был максимально плавным
-            setInterval(refresh, 1000); 
-            refresh();
+            setInterval(update, 1000); 
+            update();
         }
-        updateProgress();
+        runCounter();
 
         function add(){
             const l=document.getElementById('l'), e=document.createElement('div');
@@ -123,3 +122,10 @@ H = """
     </script>
 </body>
 </html>
+"""
+
+@app.route('/')
+def i(): return render_template_string(H, W=W, g=g_qr)
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)
