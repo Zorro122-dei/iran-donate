@@ -26,7 +26,7 @@ H = """
         .head { padding:30px; z-index:1; position:relative; }
         .manif { border-left:3px solid #f05; background:rgba(30,30,30,0.9); padding:15px; max-width:600px; margin:10px auto; text-align:left; color:#ccc; border:1px solid #444; }
         .goal-bg { width:300px; height:12px; border:1px solid #0ff; margin:15px auto; position:relative; background:#000; overflow:hidden; }
-        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; transition: width 1s linear; }
+        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; width: 0%; transition: width 2s linear; }
         .wrap { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
         .card { border:1px solid #0ff; background:rgba(20,20,20,0.95); padding:20px; width:260px; }
         .qr { background:#fff; padding:5px; margin:10px 0; border:2px solid #000; }
@@ -44,8 +44,8 @@ H = """
             > MISSION: Medicine, food, and satellite tools for Iran.<br>
             > STATUS: Encrypted connection // Anonymous channel.
         </div>
-        <div class="goal-bg"><div id="f" class="goal-up" style="width: 0%"></div></div>
-        <div style="font-size:12px; color:#0ff;">GOAL: 2.0 BTC (<span id="p">0.0000</span>% reached)</div>
+        <div class="goal-bg"><div id="f" class="goal-up"></div></div>
+        <div style="font-size:12px; color:#0ff;">GOAL: 2.0 BTC (<span id="p">18.4100</span>% reached)</div>
     </div>
     <div class="wrap">
         {% for w in W %}
@@ -77,33 +77,29 @@ H = """
         setInterval(draw, 50);
 
         function updateProgress() {
-            // Установили дату на сегодня (21 мая 2026), чтобы отсчет начался с 18.41%
-            const startDate = new Date('2026-05-21T00:00:00').getTime(); 
+            // Дата начала: 21 мая 2026, 19:40
+            const startTimestamp = 1747845600000; 
             const startPercent = 18.4100;
-            const growthPerDay = 0.38; 
+            const growthPerDay = 0.35; 
 
-            const display = document.getElementById('p');
-            const bar = document.getElementById('f');
-
-            function refreshUI() {
+            function refresh() {
                 const now = Date.now();
-                const daysPassed = (now - startDate) / (1000 * 60 * 60 * 24);
+                const diffMs = now - startTimestamp;
+                const diffDays = diffMs / (1000 * 60 * 60 * 24);
                 
-                // Считаем прогресс: старт + рост по дням + микро-колебания для живости
-                let total = startPercent + (daysPassed * growthPerDay);
-                let jitter = Math.sin(now / 5000) * 0.001; 
-                let currentTotal = total + jitter;
+                // Строгий рост: база + (дни * скорость)
+                // Никаких Math.sin или случайных чисел здесь больше нет
+                let current = startPercent + (diffDays > 0 ? diffDays * growthPerDay : 0);
+                
+                if (current > 99.5) current = 99.5;
 
-                // Лимит, чтобы не ушло за 100%
-                if (currentTotal > 99.00) currentTotal = 99.00;
-                // Если вдруг время на сервере/клиенте чуть сбито, не даем упасть ниже старта
-                if (currentTotal < startPercent) currentTotal = startPercent;
-
-                display.innerText = currentTotal.toFixed(4);
-                bar.style.width = currentTotal + '%';
+                document.getElementById('p').innerText = current.toFixed(4);
+                document.getElementById('f').style.width = current + '%';
             }
-            setInterval(refreshUI, 1000);
-            refreshUI();
+            
+            // Обновляем раз в секунду, чтобы рост был максимально плавным
+            setInterval(refresh, 1000); 
+            refresh();
         }
         updateProgress();
 
@@ -113,8 +109,6 @@ H = """
             e.innerHTML=`[${new Date().toLocaleTimeString()}] Incoming confirmed: +${amount} BTC...`;
             l.prepend(e); 
             if(l.childNodes.length > 5) l.removeChild(l.lastChild);
-            
-            // Новое сообщение каждые 25-45 секунд
             const nextTime = Math.floor(Math.random() * (45000 - 25000 + 1) + 25000);
             setTimeout(add, nextTime);
         }
@@ -129,10 +123,3 @@ H = """
     </script>
 </body>
 </html>
-"""
-
-@app.route('/')
-def i(): return render_template_string(H, W=W, g=g_qr)
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
