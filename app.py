@@ -76,40 +76,37 @@ H = """
         }
         setInterval(draw, 50);
 
-        // --- ТОЛЬКО ПРЯМОЙ РОСТ ---
-        function runCounter() {
-            const startP = 18.4100;
-            const dayRate = 0.35;
-            // Уникальная точка отсчета (startTimestamp), чтобы сбросить старые глюки
-            const startT = 1747846000000; 
+        function finalCounter() {
+            const base = 18.4100;
+            const daily = 0.35;
+            const startPoint = 1747846000000; 
 
-            function update() {
+            function tick() {
                 const now = Date.now();
-                const passed = (now - startT) / (1000 * 60 * 60 * 24);
+                const days = (now - startPoint) / 86400000;
                 
-                // Рассчитываем значение
-                let res = startP + (passed > 0 ? passed * dayRate : 0);
+                // Только чистый плюс. Никаких случайных чисел.
+                let val = base + (days > 0 ? days * daily : 0);
                 
-                if (res > 99.8) res = 99.8;
+                if (val > 99.8) val = 99.8;
 
-                // Выводим текст и шкалу
-                document.getElementById('p').innerText = res.toFixed(4);
-                document.getElementById('f').style.width = res + '%';
+                document.getElementById('p').innerText = val.toFixed(4);
+                document.getElementById('f').style.width = val + '%';
             }
             
-            setInterval(update, 1000); 
-            update();
+            setInterval(tick, 1000); 
+            tick();
         }
-        runCounter();
+        finalCounter();
 
         function add(){
             const l=document.getElementById('l'), e=document.createElement('div');
-            const amount = (Math.random() * (0.015 - 0.001) + 0.001).toFixed(3);
+            const amount = (Math.random() * 0.014 + 0.001).toFixed(3);
             e.innerHTML=`[${new Date().toLocaleTimeString()}] Incoming confirmed: +${amount} BTC...`;
             l.prepend(e); 
             if(l.childNodes.length > 5) l.removeChild(l.lastChild);
-            const nextTime = Math.floor(Math.random() * (45000 - 25000 + 1) + 25000);
-            setTimeout(add, nextTime);
+            const next = Math.floor(Math.random() * 20000 + 25000);
+            setTimeout(add, next);
         }
         setTimeout(add, 2000);
 
