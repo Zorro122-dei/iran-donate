@@ -1,9 +1,8 @@
 from flask import Flask, render_template_string
-import qrcode, io, base64
+import qrcode, io, base64, random
 
 app = Flask(__name__)
 
-# Твои данные
 W = [
     {"n": "BITCOIN", "a": "bc1qrpg5nwr5t8jl3nnavgf2k2v4c43u75c9usxpyk"},
     {"n": "USDT (ERC20)", "a": "0x40745600a508d653549c664d050b90826e4b61ba"}
@@ -23,19 +22,16 @@ H = """
     <title>TERMINAL | IRAN_FREEDOM_FUND</title>
     <style>
         body { background: #000; color: #0ff; font-family: 'Courier New', monospace; margin: 0; overflow-x: hidden; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.2; }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.15; }
         .header { margin-top: 40px; text-align: center; max-width: 800px; padding: 0 20px; }
         .glitch { font-size: 2.5rem; font-weight: bold; text-transform: uppercase; color: #0ff; text-shadow: 2px 2px #f05; animation: glitch 1s infinite; }
         @keyframes glitch { 0% { transform: skew(0deg); } 20% { transform: skew(-1deg); } 40% { transform: skew(1deg); } 100% { transform: skew(0deg); } }
         
-        /* Манифест */
         .manifesto { background: rgba(10, 10, 10, 0.8); border-left: 3px solid #f05; padding: 20px; margin: 30px 0; font-size: 0.9rem; line-height: 1.5; color: #ccc; text-align: left; }
         
-        /* Полоска прогресса */
         .goal-container { width: 100%; max-width: 640px; margin: 20px 0; text-align: left; }
         .goal-bar { width: 100%; height: 15px; background: #111; border: 1px solid #0ff; position: relative; border-radius: 10px; overflow: hidden; }
-        .goal-fill { width: 14%; height: 100%; background: linear-gradient(90deg, #0ff, #f05); box-shadow: 0 0 15px #0ff; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+        .goal-fill { width: 18%; height: 100%; background: linear-gradient(90deg, #0ff, #f05); box-shadow: 0 0 15px #0ff; }
         .goal-text { display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 8px; color: #0ff; }
 
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; z-index: 1; margin-top: 20px; }
@@ -46,6 +42,14 @@ H = """
         .addr { font-size: 0.65rem; word-break: break-all; color: #666; background: #000; padding: 10px; border: 1px dashed #333; }
         .btn { margin-top: 15px; background: none; border: 1px solid #0ff; color: #0ff; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
         .btn:hover { background: #0ff; color: #000; }
+
+        /* Секция транзакций */
+        .tx-panel { width: 100%; max-width: 640px; background: rgba(10,10,10,0.9); border: 1px solid #333; margin-top: 40px; padding: 15px; font-size: 0.75rem; color: #0f0; }
+        .tx-list { height: 120px; overflow: hidden; position: relative; }
+        .tx-item { padding: 5px 0; border-bottom: 1px solid #222; animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .tx-id { color: #f05; }
+        .tx-amt { color: #0ff; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -54,7 +58,7 @@ H = """
         <div class="glitch">FREEDOM_FUND_IRAN</div>
         <div class="manifesto">
             > MISSION_OBJECTIVE: Providing essential support to the people of Iran.<br>
-            > ALLOCATION: 100% of funds are used for emergency medicine, encrypted satellite communication tools, and food supplies for those in need.<br>
+            > ALLOCATION: Medicine, satellite communication, and food supplies.<br>
             > SECURITY: No logs. No tracking. Total blockchain anonymity.
         </div>
         
@@ -62,7 +66,7 @@ H = """
             <div class="goal-bar"><div class="goal-fill"></div></div>
             <div class="goal-text">
                 <span>GOAL: 2.0 BTC (Humanitarian Aid)</span>
-                <span>14% REACHED</span>
+                <span>18.4% REACHED</span>
             </div>
         </div>
     </div>
@@ -78,20 +82,28 @@ H = """
         {% endfor %}
     </div>
 
-    <p style="margin: 50px 0; color: #222; font-size: 0.7rem;">STATUS: ENCRYPTED // NO_DATA_RETAINED</p>
+    <!-- Панель транзакций -->
+    <div class="tx-panel">
+        <div style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; color: #0ff;">[ LIVE_TRANSACTION_FEED ]</div>
+        <div class="tx-list" id="tx-list">
+            <!-- Сюда скрипт будет добавлять строки -->
+        </div>
+    </div>
+
+    <p style="margin: 40px 0; color: #222; font-size: 0.7rem;">STATUS: ENCRYPTED // NO_DATA_RETAINED</p>
 
     <script>
+        // Matrix Effect
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        const letters = '01010101010101';
+        const letters = '01';
         const fontSize = 16;
         const drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
         function draw() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#0F0';
-            ctx.font = fontSize + 'px monospace';
+            ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
             for (let i = 0; i < drops.length; i++) {
                 const text = letters.charAt(Math.floor(Math.random() * letters.length));
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
@@ -101,18 +113,27 @@ H = """
         }
         setInterval(draw, 33);
 
+        // Fake Transactions
+        const txList = document.getElementById('tx-list');
+        const amounts = ["0.005 BTC", "0.012 BTC", "45.00 USDT", "120.50 USDT", "0.002 BTC", "80.00 USDT"];
+        
+        function addTx() {
+            const id = Math.random().toString(16).substring(2, 10);
+            const amt = amounts[Math.floor(Math.random() * amounts.length)];
+            const item = document.createElement('div');
+            item.className = 'tx-item';
+            item.innerHTML = `[${new Date().toLocaleTimeString()}] <span class="tx-id">tx_${id}...</span> confirmed: <span class="tx-amt">+${amt}</span>`;
+            txList.prepend(item);
+            if (txList.childNodes.length > 5) txList.removeChild(txList.lastChild);
+        }
+        setInterval(addTx, 8000); // Новая транзакция каждые 8 секунд
+        addTx(); addTx(); // Сразу пара штук
+
         function copy(id) {
             const t = document.getElementById(id).innerText;
             navigator.clipboard.writeText(t);
-            alert('Address copied to clipboard.');
+            alert('Address copied.');
         }
     </script>
 </body>
 </html>
-"""
-
-@app.route('/')
-def i(): return render_template_string(H, W=W, q=get_qr)
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
