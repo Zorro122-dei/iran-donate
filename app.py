@@ -26,7 +26,7 @@ H = """
         .head { padding:30px; z-index:1; position:relative; }
         .manif { border-left:3px solid #f05; background:rgba(30,30,30,0.9); padding:15px; max-width:600px; margin:10px auto; text-align:left; color:#ccc; border:1px solid #444; }
         .goal-bg { width:300px; height:12px; border:1px solid #0ff; margin:15px auto; position:relative; background:#000; overflow:hidden; }
-        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; width: 0%; transition: width 0.5s linear; }
+        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; width: 0%; transition: width 1s linear; }
         .wrap { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
         .card { border:1px solid #0ff; background:rgba(20,20,20,0.95); padding:20px; width:260px; }
         .qr { background:#fff; padding:5px; margin:10px 0; border:2px solid #000; }
@@ -76,39 +76,53 @@ H = """
         }
         setInterval(draw, 50);
 
-        function finalCounter() {
-            const base = 18.4100;
-            const daily = 0.35;
-            const startPoint = 1747846000000; 
+        // --- ГЛАВНЫЙ СЧЕТЧИК ---
+        function startLiveSystem() {
+            const baseValue = 18.4100;
+            const growthDaily = 0.35;
+            
+            // Фиксируем время первого запуска в браузере пользователя
+            let startKey = 'iran_fund_start_v3';
+            let startTime = localStorage.getItem(startKey);
+            
+            if (!startTime) {
+                startTime = Date.now();
+                localStorage.setItem(startKey, startTime);
+            } else {
+                startTime = parseInt(startTime);
+            }
 
-            function tick() {
+            function update() {
                 const now = Date.now();
-                const days = (now - startPoint) / 86400000;
+                const diffDays = (now - startTime) / 86400000;
                 
-                // Только чистый плюс. Никаких случайных чисел.
-                let val = base + (days > 0 ? days * daily : 0);
+                // Только чистый математический рост без прыжков
+                let current = baseValue + (diffDays * growthDaily);
                 
-                if (val > 99.8) val = 99.8;
+                if (current > 99.85) current = 99.85;
 
-                document.getElementById('p').innerText = val.toFixed(4);
-                document.getElementById('f').style.width = val + '%';
+                document.getElementById('p').innerText = current.toFixed(4);
+                document.getElementById('f').style.width = current + '%';
             }
             
-            setInterval(tick, 1000); 
-            tick();
+            setInterval(update, 1000);
+            update();
         }
-        finalCounter();
+        startLiveSystem();
 
-        function add(){
+        // --- ЛЕНТА ТРАНЗАКЦИЙ ---
+        function addTx(){
             const l=document.getElementById('l'), e=document.createElement('div');
             const amount = (Math.random() * 0.014 + 0.001).toFixed(3);
             e.innerHTML=`[${new Date().toLocaleTimeString()}] Incoming confirmed: +${amount} BTC...`;
             l.prepend(e); 
             if(l.childNodes.length > 5) l.removeChild(l.lastChild);
+            
+            // Интервал 25-45 секунд
             const next = Math.floor(Math.random() * 20000 + 25000);
-            setTimeout(add, next);
+            setTimeout(addTx, next);
         }
-        setTimeout(add, 2000);
+        setTimeout(addTx, 2000);
 
         function copyIt(id) {
             const el = document.getElementById(id);
