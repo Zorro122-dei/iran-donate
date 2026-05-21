@@ -22,19 +22,17 @@ H = """
     <title>SECURE_TERMINAL</title>
     <style>
         body { background:#1a1a1a; color:#0ff; font-family:monospace; text-align:center; margin:0; overflow-x:hidden; }
-        canvas { position:fixed; top:0; left:0; z-index:-1; opacity:0.5; }
+        canvas { position:fixed; top:0; left:0; z-index:-1; opacity:0.4; }
         .head { padding:30px; z-index:1; position:relative; }
         .manif { border-left:3px solid #f05; background:rgba(30,30,30,0.9); padding:15px; max-width:600px; margin:10px auto; text-align:left; color:#ccc; border:1px solid #444; }
         .goal-bg { width:300px; height:12px; border:1px solid #0ff; margin:15px auto; position:relative; background:#000; overflow:hidden; }
-        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; transition: width 3s ease-in-out; }
+        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; transition: width 4s cubic-bezier(0.4, 0, 0.2, 1); }
         .wrap { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
-        .card { border:1px solid #0ff; background:rgba(20,20,20,0.95); padding:20px; width:260px; transition: 0.3s; }
-        .card:hover { border-color:#f05; }
+        .card { border:1px solid #0ff; background:rgba(20,20,20,0.95); padding:20px; width:260px; }
         .qr { background:#fff; padding:5px; margin:10px 0; border:2px solid #000; }
-        .addr { font-size:10px; word-break:break-all; color:#888; margin-bottom:15px; padding:5px; transition: 0.3s; }
-        .highlight { color:#fff !important; background:#f05 !important; border: 1px solid #fff; }
-        .btn { border:1px solid #0ff; color:#0ff; background:none; padding:10px; cursor:pointer; width:100%; font-weight:bold; text-transform: uppercase; }
-        .btn:active { background:#f05; border-color:#f05; }
+        .addr { font-size:10px; word-break:break-all; color:#888; margin-bottom:15px; padding:5px; transition: 0.2s; }
+        .highlight { color:#fff !important; background:#f05 !important; }
+        .btn { border:1px solid #0ff; color:#0ff; background:none; padding:10px; cursor:pointer; width:100%; font-weight:bold; }
         #tx-box { border:1px solid #444; max-width:500px; margin:20px auto; padding:10px; font-size:11px; color:#0f0; text-align:left; background:rgba(0,0,0,0.8); }
     </style>
 </head>
@@ -54,8 +52,8 @@ H = """
         <div class="card">
             <h3 style="margin:0;">{{ w.n }}</h3>
             <div class="qr"><img src="data:image/png;base64,{{ g(w.a) }}" width="100%"></div>
-            <div class="addr" id="target-{{ loop.index }}">{{ w.a }}</div>
-            <button class="btn" onclick="doCopy('target-{{ loop.index }}')">COPY ADDRESS</button>
+            <div class="addr" id="cp-{{ loop.index }}">{{ w.a }}</div>
+            <button class="btn" onclick="copyIt('cp-{{ loop.index }}')">COPY ADDRESS</button>
         </div>
         {% endfor %}
     </div>
@@ -76,24 +74,29 @@ H = """
                 d[i]++;
             });
         }
-        setInterval(draw,50);
+        setInterval(draw, 50);
 
         function updateProgress() {
             const startValue = 18.4100;
-            const startTime = 1716303000000;
-            const now = Date.now();
-            const growth = (now - startTime) * 0.00000000174;
-            const total = startValue + (growth > 0 ? growth : 0);
-            document.getElementById('p').innerText = total.toFixed(4);
-            setTimeout(() => { document.getElementById('f').style.width = total + '%'; }, 500);
+            // Установили время на "сейчас", чтобы не было прыжков
+            const startTime = Date.now(); 
+            
+            setInterval(() => {
+                const now = Date.now();
+                // Медленный рост в реальном времени
+                const growth = (now - startTime) * 0.000000001; 
+                const total = startValue + growth;
+                document.getElementById('p').innerText = total.toFixed(4);
+                document.getElementById('f').style.width = (total > 100 ? 100 : total) + '%';
+            }, 1000);
         }
         updateProgress();
 
-        function doCopy(id) {
+        function copyIt(id) {
             const el = document.getElementById(id);
             navigator.clipboard.writeText(el.innerText);
             el.classList.add('highlight');
-            setTimeout(() => { el.classList.remove('highlight'); }, 300);
+            setTimeout(() => { el.classList.remove('highlight'); }, 200);
         }
 
         function add(){
@@ -101,7 +104,7 @@ H = """
             e.innerHTML=`[${new Date().toLocaleTimeString()}] Incoming confirmed: +${(Math.random()*0.01).toFixed(3)} BTC...`;
             l.prepend(e); if(l.childNodes.length>5)l.removeChild(l.lastChild);
         }
-        setInterval(add,9000); add();
+        setInterval(add, 9000); add();
     </script>
 </body>
 </html>
