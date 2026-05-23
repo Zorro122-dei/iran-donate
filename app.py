@@ -20,45 +20,57 @@ H = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIR_STRIKE_TERMINAL</title>
+    <title>TERMINAL_WAR_ZONE</title>
     <style>
         body { 
-            margin: 0; padding: 0; background: #0a0a0a; color: #fff; 
-            font-family: 'Courier New', monospace; text-align: center;
-            overflow-x: hidden; min-height: 100vh;
+            margin: 0; padding: 0; 
+            background: radial-gradient(circle, #444 0%, #111 100%); 
+            color: #fff; font-family: 'Courier New', monospace; 
+            text-align: center; overflow-x: hidden; min-height: 100vh;
         }
 
-        /* РИСУЕМ РАКЕТЫ ЧЕРЕЗ CSS */
-        .rocket {
-            position: fixed; width: 2px; height: 150px;
-            background: linear-gradient(to top, transparent, #f05, #ff0);
-            filter: blur(1px); z-index: 0; opacity: 0.8;
+        /* ЗЕМЛЯ ВНИЗУ (РАЗБИТАЯ) */
+        .ground {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
+            background: #000; z-index: 1;
+            border-top: 2px solid #f05;
+            box-shadow: 0 -10px 50px rgba(255, 0, 85, 0.6);
         }
-        .rocket::before {
-            content: ''; position: absolute; top: 0; left: -2px;
-            width: 6px; height: 6px; background: #fff; border-radius: 50%;
-            box-shadow: 0 0 15px #fff, 0 0 30px #f05;
+        .cracks {
+            position: absolute; width: 100%; height: 100%;
+            background-image: linear-gradient(45deg, transparent 45%, #f20 48%, #f20 52%, transparent 55%);
+            background-size: 50px 50px; opacity: 0.3;
         }
-        
-        /* Ракета слева */
-        .r-left { left: 10%; bottom: -200px; animation: launch 4s infinite ease-in; }
-        /* Ракета справа */
-        .r-right { right: 15%; bottom: -300px; animation: launch 6s infinite ease-in 1s; }
-        /* Ракета по центру */
-        .r-mid { left: 50%; bottom: -250px; animation: launch 5s infinite ease-in 2s; }
 
-        @keyframes launch {
-            0% { transform: translateY(0) scaleY(1); opacity: 0; }
+        /* РАКЕТЫ СВЕРХУ ВНИЗ */
+        .rocket-down {
+            position: fixed; width: 4px; height: 100px;
+            background: linear-gradient(to bottom, transparent, #fff, #f05);
+            z-index: 0; filter: blur(1px);
+        }
+        .rocket-down::after {
+            content: ''; position: absolute; bottom: 0; left: -3px;
+            width: 10px; height: 10px; background: #fff; border-radius: 50%;
+            box-shadow: 0 0 20px #fff, 0 0 40px #f05;
+        }
+
+        .rd-1 { left: 10%; top: -150px; animation: fall 3s infinite linear; }
+        .rd-2 { left: 20%; top: -150px; animation: fall 4.5s infinite linear 1s; }
+        .rd-3 { right: 10%; top: -150px; animation: fall 3.5s infinite linear 0.5s; }
+        .rd-4 { right: 25%; top: -150px; animation: fall 5s infinite linear 2s; }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(15deg); opacity: 0; }
             10% { opacity: 1; }
-            100% { transform: translateY(-120vh) scaleY(2); opacity: 0; }
+            90% { opacity: 1; }
+            100% { transform: translateY(110vh) rotate(15deg); opacity: 0; }
         }
 
         .head { padding: 40px 20px; position: relative; z-index: 2; }
-        
         .manif { 
             border: 1px solid #f05; background: rgba(0,0,0,0.9); 
             padding: 20px; max-width: 600px; margin: 20px auto; text-align: left; 
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
         }
 
         .goal-bg { 
@@ -67,50 +79,51 @@ H = """
         }
         .goal-up { height: 100%; background: #0ff; box-shadow: 0 0 20px #0ff; width: 0%; transition: width 2s; }
 
-        .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding: 20px; position: relative; z-index: 2; }
+        .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding: 20px; position: relative; z-index: 2; margin-bottom: 100px; }
         
         .card { 
-            background: rgba(20,20,20,0.95); border: 1px solid #333; 
-            padding: 25px; width: 260px; border-top: 4px solid #f05;
+            background: rgba(15,15,15,0.95); border: 1px solid #333; 
+            padding: 25px; width: 260px; border-bottom: 4px solid #f05;
+            transition: 0.3s;
         }
+        .card:hover { transform: translateY(-5px); border-color: #0ff; }
 
         .qr { background: #fff; padding: 10px; margin: 15px 0; }
         .qr img { width: 100%; display: block; }
 
-        .addr { 
-            font-size: 10px; word-break: break-all; color: #666; 
-            margin-bottom: 20px; padding: 10px; background: #000; border: 1px solid #222;
-        }
+        .addr { font-size: 10px; word-break: break-all; color: #555; margin-bottom: 20px; padding: 8px; background: #000; }
 
         .btn { 
             border: 1px solid #0ff; color: #0ff; background: transparent; 
             padding: 12px; cursor: pointer; width: 100%; font-weight: bold; 
-            text-transform: uppercase; transition: 0.3s;
+            transition: 0.3s;
         }
-        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+        .btn:hover { background: #0ff; color: #000; }
 
         #tx-box { 
-            border: 1px solid #444; max-width: 550px; margin: 40px auto; 
+            border: 1px solid #444; max-width: 550px; margin: 20px auto; 
             padding: 15px; font-size: 11px; color: #0f0; text-align: left; 
-            background: rgba(0,0,0,0.95); position: relative; z-index: 2;
+            background: rgba(0,0,0,0.9); position: relative; z-index: 2;
         }
     </style>
 </head>
 <body>
-    <!-- Анимированные ракеты -->
-    <div class="rocket r-left"></div>
-    <div class="rocket r-mid"></div>
-    <div class="rocket r-right"></div>
+    <div class="ground"><div class="cracks"></div></div>
+    
+    <div class="rocket-down rd-1"></div>
+    <div class="rocket-down rd-2"></div>
+    <div class="rocket-down rd-3"></div>
+    <div class="rocket-down rd-4"></div>
 
     <div class="head">
-        <h1 style="text-shadow: 0 0 15px #f05; margin: 0; font-size: 2.5rem;">AIR_STRIKE_FUND</h1>
+        <h1 style="text-shadow: 0 0 15px #f05; margin: 0; font-size: 2.2rem;">AIR_STRIKE_RELIEF</h1>
         <div class="manif">
-            > [STATUS]: BALLISTIC_SYSTEMS_ONLINE<br>
-            > [SECTOR]: SECURED_ANONYMOUS_LINK<br>
-            > [LOG]: WAITING_FOR_INCOMING_DATA...
+            > MISSION: EMERGENCY_SUPPLY_LINE<br>
+            > STATUS: UNDER_BOMBARDMENT<br>
+            > CHANNEL: ENCRYPTED_V4
         </div>
         <div class="goal-bg"><div id="f" class="goal-up"></div></div>
-        <div style="font-size:14px; color:#0ff;">TOTAL_PROGRESS: <span id="p">18.4100</span>%</div>
+        <div style="font-size:13px; color:#0ff;">FUNDS_COLLECTED: <span id="p">18.4100</span>%</div>
     </div>
 
     <div class="wrap">
@@ -119,13 +132,13 @@ H = """
             <h3 style="margin:0; color:#0ff;">{{ w.n }}</h3>
             <div class="qr"><img src="data:image/png;base64,{{ g(w.a) }}"></div>
             <div class="addr" id="cp-{{ loop.index }}">{{ w.a }}</div>
-            <button class="btn" onclick="copyIt('cp-{{ loop.index }}')">COPY_ADDRESS</button>
+            <button class="btn" onclick="copyIt('cp-{{ loop.index }}')">COPY_ADDR</button>
         </div>
         {% endfor %}
     </div>
 
     <div id="tx-box">
-        <div style="color: #f05; font-weight: bold; margin-bottom: 5px;">[ DATA_STREAM ]</div>
+        <div style="color: #f05; font-weight: bold; font-size: 10px;">[ SATELLITE_FEED_INCOMING ]</div>
         <div id="l"></div>
     </div>
 
@@ -133,7 +146,7 @@ H = """
         function startLiveSystem() {
             const baseValue = 18.4100;
             const growthDaily = 0.35;
-            let startKey = 'iran_fund_v15';
+            let startKey = 'iran_fund_v20';
             let startTime = localStorage.getItem(startKey) || Date.now();
             localStorage.setItem(startKey, startTime);
 
@@ -154,7 +167,7 @@ H = """
             const amount = (Math.random() * 0.01).toFixed(4);
             e.innerHTML=`> [${new Date().toLocaleTimeString()}] RECEIVED: +${amount} BTC... OK`;
             l.prepend(e); 
-            if(l.childNodes.length > 5) l.removeChild(l.lastChild);
+            if(l.childNodes.length > 4) l.removeChild(l.lastChild);
             setTimeout(addTx, Math.random() * 15000 + 10000);
         }
         setTimeout(addTx, 1500);
