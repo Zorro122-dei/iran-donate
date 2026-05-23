@@ -30,8 +30,8 @@ H = """
             text-align: center;
             min-height: 100vh;
             /* ФОН С РАКЕТАМИ */
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), 
-                        url('https://pixabay.com');
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), 
+                        url('https://wallpapersden.com');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -48,12 +48,13 @@ H = """
         
         .manif { 
             border: 1px solid #f05; 
-            background: rgba(10,10,10,0.9); 
+            background: rgba(10,10,10,0.85); 
+            backdrop-filter: blur(10px);
             padding: 20px; 
             max-width: 650px; 
             margin: 20px auto; 
             text-align: left; 
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.5);
         }
 
         .goal-bg { 
@@ -65,18 +66,20 @@ H = """
         .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding: 20px; position: relative; z-index: 2; }
         
         .card { 
-            background: rgba(0,0,0,0.95); 
+            background: rgba(0,0,0,0.9); 
             border: 1px solid #333; 
             padding: 30px; 
             width: 280px; 
             border-top: 4px solid #f05;
+            transition: transform 0.3s ease;
         }
+        .card:hover { transform: translateY(-5px); }
 
-        .qr { background: #fff; padding: 10px; margin: 15px 0; }
+        .qr { background: #fff; padding: 10px; margin: 15px 0; border-radius: 4px; }
         .qr img { width: 100%; display: block; }
 
         .addr { 
-            font-size: 10px; word-break: break-all; color: #666; 
+            font-size: 10px; word-break: break-all; color: #777; 
             margin-bottom: 20px; padding: 10px; background: #050505; border: 1px solid #222;
         }
 
@@ -85,7 +88,7 @@ H = """
             padding: 14px; cursor: pointer; width: 100%; font-weight: bold; 
             text-transform: uppercase; transition: 0.3s;
         }
-        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 25px #0ff; }
 
         #tx-box { 
             border: 1px solid #444; max-width: 600px; margin: 50px auto; 
@@ -97,14 +100,14 @@ H = """
 <body>
     <div class="overlay-fx"></div>
     <div class="head">
-        <h1 style="text-shadow: 0 0 15px #f05; margin: 0; font-size: 3rem;">AIR_STRIKE_FUND</h1>
+        <h1 style="text-shadow: 0 0 20px #f05; margin: 0; font-size: 3rem; font-weight: 900;">AIR_STRIKE_FUND</h1>
         <div class="manif">
-            > [STATUS]: ROCKET_SYSTEMS_READY<br>
-            > [SECTOR]: ALL_FRONT_LINES<br>
-            > [ENCRYPTION]: MILITARY_GRADE_SECURED
+            > [STATUS]: ROCKET_ENGINES_IGNITED<br>
+            > [SECTOR]: STRATEGIC_DEPLOYMENT<br>
+            > [INTEL]: SECURE_CRYPTO_CHANNEL_OPEN
         </div>
         <div class="goal-bg"><div id="f" class="goal-up"></div></div>
-        <div style="font-size:14px; color:#0ff;">COLLECTION_PROGRESS: <span id="p">18.4100</span>%</div>
+        <div style="font-size:14px; color:#0ff; font-weight: bold;">DEPLOYMENT: <span id="p">18.4100</span>%</div>
     </div>
 
     <div class="wrap">
@@ -119,7 +122,7 @@ H = """
     </div>
 
     <div id="tx-box">
-        <div style="color: #f05; font-weight: bold; margin-bottom: 10px;">[ SATELLITE_LINK_ACTIVE ]</div>
+        <div style="color: #f05; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px;">[ COMMS_FEED_ACTIVE ]</div>
         <div id="l"></div>
     </div>
 
@@ -127,7 +130,7 @@ H = """
         function startLiveSystem() {
             const baseValue = 18.4100;
             const growthDaily = 0.35;
-            let startKey = 'iran_fund_v10';
+            let startKey = 'iran_fund_v12';
             let startTime = localStorage.getItem(startKey) || Date.now();
             localStorage.setItem(startKey, startTime);
 
@@ -145,11 +148,11 @@ H = """
 
         function addTx(){
             const l=document.getElementById('l'), e=document.createElement('div');
-            const amount = (Math.random() * 0.01).toFixed(4);
-            e.innerHTML=`> [${new Date().toLocaleTimeString()}] INCOMING: +${amount} BTC... DONE`;
+            const amount = (Math.random() * 0.015).toFixed(4);
+            e.innerHTML=`> [${new Date().toLocaleTimeString()}] VOLUNTEER_SYNC: +${amount} BTC... CONFIRMED`;
             l.prepend(e); 
             if(l.childNodes.length > 5) l.removeChild(l.lastChild);
-            setTimeout(addTx, Math.random() * 15000 + 10000);
+            setTimeout(addTx, Math.random() * 20000 + 10000);
         }
         setTimeout(addTx, 1500);
 
@@ -159,10 +162,7 @@ H = """
             const old = el.innerText;
             el.innerText = "COPIED!";
             el.style.color = "#fff";
-            setTimeout(() => { 
-                el.innerText = old; 
-                el.style.color = "#666"; 
-            }, 1000);
+            setTimeout(() => { el.innerText = old; el.style.color = "#777"; }, 1000);
         }
     </script>
 </body>
