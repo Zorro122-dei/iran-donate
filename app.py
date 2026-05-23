@@ -9,10 +9,10 @@ W = [
     {"n": "USDT (ERC20)", "a": "0x40745600a508d653549c664d050b90826e4b61ba"}
 ]
 
-# --- НАСТРОЙКИ (23 мая 2026, 15:10) ---
+# --- НАСТРОЙКИ (Скорость возвращена на 0.35) ---
 BASE_VALUE = 18.4100  
-GROWTH_PER_DAY = 0.98  # Поставил почти 1%, чтобы точно было видно движение
-START_TIME_TS = 1779538200 # Таймштамп для точности (23.05.2026 15:10)
+GROWTH_PER_DAY = 0.35  
+START_TIME_TS = 1779538200 # Таймштамп запуска (23.05.2026 15:10)
 
 def g_qr(t):
     img = qrcode.make(t)
@@ -41,7 +41,6 @@ H = """
         .head { padding:30px; position:relative; z-index:5; }
         .manif { border-left:4px solid #f05; background:rgba(0,0,0,0.8); padding:15px; margin:20px auto; text-align:left; font-size:13px; border:1px solid #333; max-width:600px; }
         
-        /* ИСПРАВЛЕННАЯ ШКАЛА */
         .goal-bg { width:300px; height:12px; border:1px solid #0ff; margin:15px auto; background:#000; overflow:hidden; position:relative; }
         #bar { height:100%; background:#0ff; box-shadow:0 0 15px #0ff; width:0%; transition: width 0.5s ease-in-out; }
         
@@ -88,7 +87,6 @@ H = """
     </div>
 
     <script>
-        // ЛОГИКА ЖИВОЙ ШКАЛЫ
         const base = {{ base }};
         const growth = {{ growth }};
         const start = {{ start }};
