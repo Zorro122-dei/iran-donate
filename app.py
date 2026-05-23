@@ -20,133 +20,120 @@ H = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL_WAR_ZONE</title>
+    <title>TERMINAL_STRIKE_ZONE</title>
     <style>
         body { 
             margin: 0; padding: 0; 
-            background: radial-gradient(circle, #444 0%, #111 100%); 
+            background: #2c2c2c; /* Серый фон */
             color: #fff; font-family: 'Courier New', monospace; 
-            text-align: center; overflow-x: hidden; min-height: 100vh;
+            text-align: center; overflow: hidden; height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        /* ЗЕМЛЯ ВНИЗУ (РАЗБИТАЯ) */
-        .ground {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
-            background: #000; z-index: 1;
-            border-top: 2px solid #f05;
-            box-shadow: 0 -10px 50px rgba(255, 0, 85, 0.6);
-        }
-        .cracks {
-            position: absolute; width: 100%; height: 100%;
-            background-image: linear-gradient(45deg, transparent 45%, #f20 48%, #f20 52%, transparent 55%);
-            background-size: 50px 50px; opacity: 0.3;
+        /* РИСУНОК ЗЕМЛИ С ДЫРКОЙ ВНИЗУ */
+        .ground-hole {
+            position: fixed; bottom: -50px; width: 120%; height: 150px;
+            background: #111; border-radius: 50% 50% 0 0;
+            border-top: 4px solid #000; z-index: 1;
+            box-shadow: inset 0 20px 50px #000, 0 -10px 30px rgba(0,0,0,0.5);
         }
 
-        /* РАКЕТЫ СВЕРХУ ВНИЗ */
-        .rocket-down {
-            position: fixed; width: 4px; height: 100px;
-            background: linear-gradient(to bottom, transparent, #fff, #f05);
-            z-index: 0; filter: blur(1px);
+        /* РИСУНКИ РАКЕТ ПО БОКАМ */
+        .side-rocket {
+            position: fixed; top: 150px; width: 40px; height: 180px;
+            background: #1a1a1a; border: 2px solid #000;
+            border-radius: 50% 50% 5px 5px; z-index: 1;
         }
-        .rocket-down::after {
-            content: ''; position: absolute; bottom: 0; left: -3px;
-            width: 10px; height: 10px; background: #fff; border-radius: 50%;
-            box-shadow: 0 0 20px #fff, 0 0 40px #f05;
+        .side-rocket::before { /* Носовая часть */
+            content: ''; position: absolute; top: -30px; left: -2px;
+            width: 40px; height: 40px; background: #c00; 
+            border: 2px solid #000; border-radius: 50% 50% 0 0;
         }
-
-        .rd-1 { left: 10%; top: -150px; animation: fall 3s infinite linear; }
-        .rd-2 { left: 20%; top: -150px; animation: fall 4.5s infinite linear 1s; }
-        .rd-3 { right: 10%; top: -150px; animation: fall 3.5s infinite linear 0.5s; }
-        .rd-4 { right: 25%; top: -150px; animation: fall 5s infinite linear 2s; }
-
-        @keyframes fall {
-            0% { transform: translateY(0) rotate(15deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(110vh) rotate(15deg); opacity: 0; }
+        .side-rocket::after { /* Стабилизаторы */
+            content: ''; position: absolute; bottom: 0; left: -10px;
+            width: 56px; height: 20px; background: #333; border: 2px solid #000;
         }
+        
+        .r-left { left: 5%; transform: rotate(15deg); }
+        .r-right { right: 5%; transform: rotate(-15deg); }
 
-        .head { padding: 40px 20px; position: relative; z-index: 2; }
+        .head { padding: 30px; position: relative; z-index: 2; }
         .manif { 
-            border: 1px solid #f05; background: rgba(0,0,0,0.9); 
-            padding: 20px; max-width: 600px; margin: 20px auto; text-align: left; 
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
+            background: rgba(0,0,0,0.7); border: 1px solid #444; 
+            padding: 15px; max-width: 500px; margin: 10px auto; 
+            text-align: left; font-size: 13px; color: #ccc;
         }
 
         .goal-bg { 
-            width: 300px; height: 12px; border: 1px solid #0ff; 
-            margin: 20px auto; position: relative; background: #000;
+            width: 250px; height: 10px; border: 1px solid #0ff; 
+            margin: 15px auto; background: #000; position: relative;
         }
-        .goal-up { height: 100%; background: #0ff; box-shadow: 0 0 20px #0ff; width: 0%; transition: width 2s; }
+        .goal-up { height: 100%; background: #0ff; width: 0%; transition: width 2s; }
 
-        .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding: 20px; position: relative; z-index: 2; margin-bottom: 100px; }
+        .wrap { display: flex; justify-content: center; gap: 20px; padding: 20px; position: relative; z-index: 2; }
         
         .card { 
-            background: rgba(15,15,15,0.95); border: 1px solid #333; 
-            padding: 25px; width: 260px; border-bottom: 4px solid #f05;
-            transition: 0.3s;
+            background: #1a1a1a; border: 2px solid #000; 
+            padding: 20px; width: 240px; box-shadow: 5px 5px 0px #000;
         }
-        .card:hover { transform: translateY(-5px); border-color: #0ff; }
 
-        .qr { background: #fff; padding: 10px; margin: 15px 0; }
+        .qr { background: #fff; padding: 8px; margin: 10px 0; border: 1px solid #000; }
         .qr img { width: 100%; display: block; }
 
-        .addr { font-size: 10px; word-break: break-all; color: #555; margin-bottom: 20px; padding: 8px; background: #000; }
+        .addr { font-size: 9px; word-break: break-all; color: #888; background: #000; padding: 5px; margin-bottom: 15px; }
 
         .btn { 
-            border: 1px solid #0ff; color: #0ff; background: transparent; 
-            padding: 12px; cursor: pointer; width: 100%; font-weight: bold; 
-            transition: 0.3s;
+            border: 1px solid #0ff; color: #0ff; background: #000; 
+            padding: 10px; cursor: pointer; width: 100%; font-weight: bold; 
         }
-        .btn:hover { background: #0ff; color: #000; }
+        .btn:active { background: #0ff; color: #000; }
 
         #tx-box { 
-            border: 1px solid #444; max-width: 550px; margin: 20px auto; 
-            padding: 15px; font-size: 11px; color: #0f0; text-align: left; 
-            background: rgba(0,0,0,0.9); position: relative; z-index: 2;
+            border: 1px solid #333; width: 450px; margin-top: 10px;
+            padding: 10px; font-size: 10px; color: #0f0; text-align: left; 
+            background: #000; position: relative; z-index: 2;
         }
     </style>
 </head>
 <body>
-    <div class="ground"><div class="cracks"></div></div>
-    
-    <div class="rocket-down rd-1"></div>
-    <div class="rocket-down rd-2"></div>
-    <div class="rocket-down rd-3"></div>
-    <div class="rocket-down rd-4"></div>
+    <!-- Статичные элементы декора -->
+    <div class="side-rocket r-left"></div>
+    <div class="side-rocket r-right"></div>
+    <div class="ground-hole"></div>
 
     <div class="head">
-        <h1 style="text-shadow: 0 0 15px #f05; margin: 0; font-size: 2.2rem;">AIR_STRIKE_RELIEF</h1>
+        <h1 style="margin: 0; color: #f05; text-transform: uppercase; letter-spacing: 2px;">Target_Zone_Fund</h1>
         <div class="manif">
-            > MISSION: EMERGENCY_SUPPLY_LINE<br>
-            > STATUS: UNDER_BOMBARDMENT<br>
-            > CHANNEL: ENCRYPTED_V4
+            > MISSION: EMERGENCY_SUPPLY<br>
+            > AREA: SECTOR_7_STRIKE<br>
+            > STATUS: CONNECTION_SECURE
         </div>
         <div class="goal-bg"><div id="f" class="goal-up"></div></div>
-        <div style="font-size:13px; color:#0ff;">FUNDS_COLLECTED: <span id="p">18.4100</span>%</div>
+        <div style="font-size:12px; color:#0ff;">PROGRESS: <span id="p">18.4100</span>%</div>
     </div>
 
     <div class="wrap">
         {% for w in W %}
         <div class="card">
-            <h3 style="margin:0; color:#0ff;">{{ w.n }}</h3>
+            <h4 style="margin:0; color:#0ff;">{{ w.n }}</h4>
             <div class="qr"><img src="data:image/png;base64,{{ g(w.a) }}"></div>
             <div class="addr" id="cp-{{ loop.index }}">{{ w.a }}</div>
-            <button class="btn" onclick="copyIt('cp-{{ loop.index }}')">COPY_ADDR</button>
+            <button class="btn" onclick="copyIt('cp-{{ loop.index }}')">COPY_ADDRESS</button>
         </div>
         {% endfor %}
     </div>
 
     <div id="tx-box">
-        <div style="color: #f05; font-weight: bold; font-size: 10px;">[ SATELLITE_FEED_INCOMING ]</div>
+        <div style="color: #444; border-bottom: 1px solid #222; margin-bottom: 5px;">[ LOG_STREAM ]</div>
         <div id="l"></div>
     </div>
 
     <script>
+        // Твоя логика счетчика
         function startLiveSystem() {
             const baseValue = 18.4100;
             const growthDaily = 0.35;
-            let startKey = 'iran_fund_v20';
+            let startKey = 'iran_fund_vfinal';
             let startTime = localStorage.getItem(startKey) || Date.now();
             localStorage.setItem(startKey, startTime);
 
@@ -157,27 +144,23 @@ H = """
                 document.getElementById('p').innerText = current.toFixed(4);
                 document.getElementById('f').style.width = current + '%';
             }
-            setInterval(update, 1000);
-            update();
+            setInterval(update, 1000); update();
         }
         startLiveSystem();
 
         function addTx(){
             const l=document.getElementById('l'), e=document.createElement('div');
-            const amount = (Math.random() * 0.01).toFixed(4);
-            e.innerHTML=`> [${new Date().toLocaleTimeString()}] RECEIVED: +${amount} BTC... OK`;
+            e.innerHTML=`> [${new Date().toLocaleTimeString()}] RECEIVED: +${(Math.random()*0.01).toFixed(4)} BTC`;
             l.prepend(e); 
-            if(l.childNodes.length > 4) l.removeChild(l.lastChild);
-            setTimeout(addTx, Math.random() * 15000 + 10000);
+            if(l.childNodes.length > 3) l.removeChild(l.lastChild);
+            setTimeout(addTx, 15000);
         }
-        setTimeout(addTx, 1500);
+        addTx();
 
         function copyIt(id) {
             const el = document.getElementById(id);
             navigator.clipboard.writeText(el.innerText);
-            const old = el.innerText;
-            el.innerText = "COPIED!";
-            setTimeout(() => { el.innerText = old; }, 1000);
+            alert("Скопировано!");
         }
     </script>
 </body>
