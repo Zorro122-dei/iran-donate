@@ -10,10 +10,10 @@ W = [
 ]
 
 # --- НАСТРОЙКИ СЧЕТЧИКА ---
-BASE_VALUE = 18.4100  # Начальный процент
+BASE_VALUE = 18.4100  # Начинаем с этого процента
 GROWTH_PER_DAY = 0.35 # Прирост в сутки
-# УСТАНОВЛЕНО: 23 МАЯ 2024, 15:10
-START_TIME = datetime.datetime(2024, 5, 23, 15, 10) 
+# УСТАНОВЛЕНО: 23 МАЯ 2026 ГОДА (чтобы счетчик начался СЕЙЧАС)
+START_TIME = datetime.datetime(2026, 5, 23, 15, 10) 
 
 def get_global_percent():
     now = datetime.datetime.utcnow()
