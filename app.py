@@ -3,132 +3,187 @@ import qrcode, io, base64
 
 app = Flask(__name__)
 
-W = [
-    {"n": "BITCOIN", "a": "bc1qrpg5nwr5t8jl3nnavgf2k2v4c43u75c9usxpyk"},
-    {"n": "USDT (ERC20)", "a": "0x40745600a508d653549c664d050b90826e4b61ba"}
+WALLETS = [
+    {"n": "BITCOIN", "a": "bc1qrpg5nwr5t8jl3nnavgf2k2v4c43u75c9usxpyk", "sym": "BTC"},
+    {"n": "USDT (ERC20)", "a": "0x40745600a508d653549c664d050b90826e4b61ba", "sym": "USDT"}
 ]
 
-def g_qr(t):
-    img = qrcode.make(t)
-    b = io.BytesIO()
-    img.save(b, "PNG")
-    return base64.b64encode(b.getvalue()).decode()
+for w in WALLETS:
+    img = qrcode.make(w['a'])
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    w['qr'] = base64.b64encode(buf.getvalue()).decode()
 
-H = """
+HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>SECURE_TERMINAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL_OPERATIONAL</title>
     <style>
-        body { background:#1a1a1a; color:#0ff; font-family:monospace; text-align:center; margin:0; overflow-x:hidden; }
-        canvas { position:fixed; top:0; left:0; z-index:-1; opacity:0.4; }
-        .head { padding:30px; z-index:1; position:relative; }
-        .manif { border-left:3px solid #f05; background:rgba(30,30,30,0.9); padding:15px; max-width:600px; margin:10px auto; text-align:left; color:#ccc; border:1px solid #444; }
-        .goal-bg { width:300px; height:12px; border:1px solid #0ff; margin:15px auto; position:relative; background:#000; overflow:hidden; }
-        .goal-up { height:100%; background:#0ff; box-shadow:0 0 10px #0ff; width: 0%; transition: width 1s linear; }
-        .wrap { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
-        .card { border:1px solid #0ff; background:rgba(20,20,20,0.95); padding:20px; width:260px; }
-        .qr { background:#fff; padding:5px; margin:10px 0; border:2px solid #000; }
-        .addr { font-size:10px; word-break:break-all; color:#888; margin-bottom:15px; padding:5px; transition: 0.2s; }
-        .highlight { color:#fff !important; background:#f05 !important; }
-        .btn { border:1px solid #0ff; color:#0ff; background:none; padding:10px; cursor:pointer; width:100%; font-weight:bold; }
-        #tx-box { border:1px solid #444; max-width:500px; margin:20px auto; padding:10px; font-size:11px; color:#0f0; text-align:left; background:rgba(0,0,0,0.8); }
+        :root { --neon: #ff3e3e; --accent: #ffae00; --bg: #050505; }
+        
+        body { 
+            background: var(--bg); 
+            color: #fff; 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            margin: 0; 
+            min-height: 100vh;
+            /* ФОНОВОЕ ИЗОБРАЖЕНИЕ */
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), 
+                              url('https://unsplash.com');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        /* Эффект помех (Grain) */
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url(https://vercel.app);
+            opacity: 0.05; pointer-events: none; z-index: 10;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; position: relative; z-index: 2; }
+
+        .header { text-align: center; margin-bottom: 50px; }
+        
+        /* Глитч-заголовок */
+        .glitch {
+            font-size: 3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--neon);
+            text-shadow: 2px 2px 0px var(--accent);
+            position: relative;
+        }
+
+        .manifesto { 
+            background: rgba(255, 0, 0, 0.1); 
+            border: 1px solid var(--neon);
+            padding: 20px; 
+            margin: 25px 0; 
+            font-family: monospace;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Прогресс-бар */
+        .progress-box { margin: 30px 0; font-family: monospace; color: var(--accent); }
+        .bar-bg { background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px; border: 1px solid #444; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--neon), var(--accent)); width: 0%; transition: width 2s cubic-bezier(0.1, 0, 0, 1); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        
+        .card { 
+            background: rgba(20, 20, 20, 0.7); 
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1); 
+            padding: 30px; 
+            text-align: center;
+            border-top: 4px solid var(--neon);
+            transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); }
+
+        .qr-wrap { background: #fff; padding: 15px; margin-bottom: 20px; display: inline-block; border-radius: 4px; }
+        .qr-wrap img { width: 180px; display: block; }
+
+        .addr { 
+            font-family: monospace; font-size: 12px; background: #000; padding: 12px; 
+            border: 1px solid #333; word-break: break-all; margin-bottom: 20px; color: #aaa;
+        }
+
+        .btn { 
+            background: var(--neon); border: none; color: #fff; padding: 15px; 
+            width: 100%; font-weight: bold; cursor: pointer; clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+            transition: 0.3s;
+        }
+        .btn:hover { background: var(--accent); color: #000; }
+
+        #feed { 
+            margin-top: 50px; padding: 20px; background: rgba(0,0,0,0.8); 
+            border-left: 3px solid var(--accent); font-family: monospace; font-size: 13px;
+        }
+        .tx-line { color: #0f0; margin: 5px 0; opacity: 0.8; }
     </style>
 </head>
 <body>
-    <canvas id="m"></canvas>
-    <div class="head">
-        <h1 style="text-shadow:0 0 10px #0ff; margin:0;">HELP_IRAN_FUND</h1>
-        <div class="manif">
-            > MISSION: Medicine, food, and satellite tools for Iran.<br>
-            > STATUS: Encrypted connection // Anonymous channel.
+    <div class="container">
+        <header class="header">
+            <h1 class="glitch">WAR_RECOVERY_FUND</h1>
+            <div class="manifesto">
+                [SYSTEM]: ПОДКЛЮЧЕНИЕ ЗАЩИЩЕНО... <br>
+                [TARGET]: ПОДДЕРЖКА, МЕДИКАМЕНТЫ, СВЯЗЬ <br>
+                [ANON]: ТРАНЗАКЦИИ НЕ ОТСЛЕЖИВАЮТСЯ
+            </div>
+            
+            <div class="progress-box">
+                ТЕКУЩИЙ СБОР: <span id="pct">0</span>% (<span id="btc_val">0</span> BTC)
+                <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
+            </div>
+        </header>
+
+        <div class="grid">
+            {% for w in wallets %}
+            <div class="card">
+                <h3 style="margin-top:0; color: var(--accent);">{{ w.n }}</h3>
+                <div class="qr-wrap">
+                    <img src="data:image/png;base64,{{ w.qr }}" alt="QR">
+                </div>
+                <div class="addr" id="addr-{{ loop.index }}">{{ w.a }}</div>
+                <button class="btn" onclick="copy('addr-{{ loop.index }}')">КОПИРОВАТЬ АДРЕС</button>
+            </div>
+            {% endfor %}
         </div>
-        <div class="goal-bg"><div id="f" class="goal-up"></div></div>
-        <div style="font-size:12px; color:#0ff;">GOAL: 2.0 BTC (<span id="p">18.4100</span>% reached)</div>
-    </div>
-    <div class="wrap">
-        {% for w in W %}
-        <div class="card">
-            <h3 style="margin:0;">{{ w.n }}</h3>
-            <div class="qr"><img src="data:image/png;base64,{{ g(w.a) }}" width="100%"></div>
-            <div class="addr" id="cp-{{ loop.index }}">{{ w.a }}</div>
-            <button class="btn" onclick="copyIt('cp-{{ loop.index }}')">COPY ADDRESS</button>
+
+        <div id="feed">
+            <div style="color:var(--accent); font-weight:bold; margin-bottom:10px;">> LIVE_OPERATIONS_LOG:</div>
+            <div id="log"></div>
         </div>
-        {% endfor %}
     </div>
-    <div id="tx-box">
-        <div style="border-bottom:1px solid #444; margin-bottom:5px; color:#0ff;">[ LIVE_FEED ]</div>
-        <div id="l"></div>
-    </div>
+
     <script>
-        const c=document.getElementById('m'), x=c.getContext('2d');
-        c.width=window.innerWidth; c.height=window.innerHeight;
-        const d=Array(Math.floor(c.width/20)).fill(1);
-        function draw(){
-            x.fillStyle='rgba(26,26,26,0.1)'; x.fillRect(0,0,c.width,c.height);
-            x.fillStyle='#f00'; x.font='15px monospace';
-            d.forEach((y,i)=>{
-                x.fillText(Math.floor(Math.random()*2),i*20,y*20);
-                if(y*20>c.height&&Math.random()>0.975)d[i]=0;
-                d[i]++;
-            });
+        function updateCounter() {
+            const startPct = 18.41;
+            const dailyInc = 0.35;
+            const initTime = parseInt(localStorage.getItem('init_v4') || Date.now());
+            if(!localStorage.getItem('init_v4')) localStorage.setItem('init_v4', initTime);
+            
+            const days = (Date.now() - initTime) / 86400000;
+            const current = Math.min(99.85, startPct + (days * dailyInc));
+            
+            document.getElementById('pct').innerText = current.toFixed(4);
+            document.getElementById('btc_val').innerText = (2.0 * (current/100)).toFixed(4);
+            document.getElementById('bar').style.width = current + '%';
         }
-        setInterval(draw, 50);
+        setInterval(updateCounter, 2000);
+        updateCounter();
 
-        // --- ГЛАВНЫЙ СЧЕТЧИК ---
-        function startLiveSystem() {
-            const baseValue = 18.4100;
-            const growthDaily = 0.35;
-            
-            // Фиксируем время первого запуска в браузере пользователя
-            let startKey = 'iran_fund_start_v3';
-            let startTime = localStorage.getItem(startKey);
-            
-            if (!startTime) {
-                startTime = Date.now();
-                localStorage.setItem(startKey, startTime);
-            } else {
-                startTime = parseInt(startTime);
-            }
-
-            function update() {
-                const now = Date.now();
-                const diffDays = (now - startTime) / 86400000;
-                
-                // Только чистый математический рост без прыжков
-                let current = baseValue + (diffDays * growthDaily);
-                
-                if (current > 99.85) current = 99.85;
-
-                document.getElementById('p').innerText = current.toFixed(4);
-                document.getElementById('f').style.width = current + '%';
-            }
-            
-            setInterval(update, 1000);
-            update();
+        function addTx() {
+            const log = document.getElementById('log');
+            const el = document.createElement('div');
+            el.className = 'tx-line';
+            const val = (Math.random() * 0.05).toFixed(4);
+            el.innerHTML = `> [${new Date().toLocaleTimeString()}] ВХОДЯЩИЙ ПЛАТЕЖ: +${val} ${Math.random() > 0.5 ? 'BTC' : 'USDT'}... ПОДТВЕРЖДЕНО`;
+            log.prepend(el);
+            if(log.childNodes.length > 5) log.removeChild(log.lastChild);
+            setTimeout(addTx, Math.random() * 15000 + 10000);
         }
-        startLiveSystem();
+        addTx();
 
-        // --- ЛЕНТА ТРАНЗАКЦИЙ ---
-        function addTx(){
-            const l=document.getElementById('l'), e=document.createElement('div');
-            const amount = (Math.random() * 0.014 + 0.001).toFixed(3);
-            e.innerHTML=`[${new Date().toLocaleTimeString()}] Incoming confirmed: +${amount} BTC...`;
-            l.prepend(e); 
-            if(l.childNodes.length > 5) l.removeChild(l.lastChild);
-            
-            // Интервал 25-45 секунд
-            const next = Math.floor(Math.random() * 20000 + 25000);
-            setTimeout(addTx, next);
-        }
-        setTimeout(addTx, 2000);
-
-        function copyIt(id) {
+        function copy(id) {
             const el = document.getElementById(id);
-            navigator.clipboard.writeText(el.innerText);
-            el.classList.add('highlight');
-            setTimeout(() => { el.classList.remove('highlight'); }, 200);
+            const originalText = el.innerText;
+            navigator.clipboard.writeText(originalText);
+            el.innerText = 'СКОПИРОВАНО В БУФЕР!';
+            el.style.color = '#fff';
+            setTimeout(() => { 
+                el.innerText = originalText;
+                el.style.color = '#aaa';
+            }, 1500);
         }
     </script>
 </body>
@@ -136,7 +191,8 @@ H = """
 """
 
 @app.route('/')
-def i(): return render_template_string(H, W=W, g=g_qr)
+def index():
+    return render_template_string(HTML_TEMPLATE, wallets=WALLETS)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
